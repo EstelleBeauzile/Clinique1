@@ -3179,3 +3179,44 @@ renderReports = function () {
     const chk = document.getElementById('chkToggleReportCharts');
     if (chk && chk.checked && typeof renderReportChart === 'function') renderReportChart();
 };
+
+
+// ---------- Sauvegarde : export / import (fichier JSON) ----------
+function exportBackup() {
+    const out = {};
+    ClinicSync.keys().forEach(k => { const v = localStorage.getItem(k); if (v !== null) out[k] = v; });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(out)], { type: 'application/json' }));
+    a.download = 'sauvegarde-clinique-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
+async function importBackupFile(input) {
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (!file) return;
+    let data;
+    try { data = JSON.parse(await file.text()); } catch (e) { alert("Fichier illisible : ce n'est pas une sauvegarde valide."); return; }
+    const listKeys = ClinicSync.keys().filter(k => !['clinic_last_reset', 'clinic_finance_pin'].includes(k));
+    let added = 0;
+    for (const key of listKeys) {
+        if (typeof data[key] !== 'string') continue;
+        let incoming;
+        try { incoming = JSON.parse(data[key]); } catch (e) { continue; }
+        if (!Array.isArray(incoming)) continue;
+        let current = [];
+        try { current = JSON.parse(localStorage.getItem(key)) || []; } catch (e) {}
+        const idOf = i => (i && typeof i === 'object' && i.id) || JSON.stringify(i);
+        const known = new Set(current.map(idOf));
+        const fresh = incoming.filter(i => !known.has(idOf(i)));
+        if (fresh.length) {
+            added += fresh.length;
+            localStorage.setItem(key, JSON.stringify(current.concat(fresh)));
+        }
+    }
+    try { await ClinicSync.sync(); } catch (e) { alert("Données importées sur cet appareil, mais l'envoi au serveur a échoué. Réessayez dans un instant."); }
+    alert(added ? `${added} élément(s) importé(s) et synchronisé(s). La page va se recharger.` : 'Aucun nouvel élément à importer (tout est déjà présent).');
+    location.reload();
+}

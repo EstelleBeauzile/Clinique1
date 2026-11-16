@@ -353,6 +353,8 @@
         },
         setToken(token) { const x = readSession(); if (x && token) { x.token = token; writeSession(x); } },
         logout() { store.remove(SESSION_KEY); },
+        sync: () => syncNow(),
+        keys: () => Object.keys(SYNCED),
         api: apiCall
     };
 
