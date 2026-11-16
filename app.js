@@ -3284,38 +3284,47 @@ function localHpiDraft(d) {
 }
 
 async function generateHpi() {
-    const d = collectHpiInput();
     const note = document.getElementById('hpiAssistantNote');
     const btn = document.getElementById('btnGenerateHpi');
-    const filled = Object.values(d.fields).some(Boolean) || d.reason;
-    if (!filled) { alert("Renseignez au moins le motif de consultation ou un des champs de l'assistant."); return; }
-
-    btn.disabled = true;
-    note.textContent = 'Rédaction en cours…';
-    let text = '', source = '';
+    const setNote = t => { if (note) note.textContent = t; };
     try {
-        const data = await ClinicSync.api('POST', '/hpi', d);
-        text = data.text; source = 'ia';
-    } catch (err) {
-        text = localHpiDraft(d); source = 'local';
-    }
-    btn.disabled = false;
+        const d = collectHpiInput();
+        const filled = Object.values(d.fields).some(Boolean) || d.reason;
+        if (!filled) { alert("Renseignez au moins le motif de consultation ou un des champs de l'assistant."); return; }
 
-    const area = document.getElementById('txtHPI');
-    if (area.value.trim()) {
-        if (confirm("L'anamnèse contient déjà du texte.\n\nOK = REMPLACER par le brouillon\nAnnuler = AJOUTER à la suite")) area.value = text;
-        else area.value = area.value.replace(/\s+$/, '') + '\n\n' + text;
-    } else {
-        area.value = text;
+        if (btn) btn.disabled = true;
+        setNote('Rédaction en cours…');
+        let text = '', source = '';
+        try {
+            if (typeof ClinicSync === 'undefined' || !ClinicSync.api) throw new Error('no api');
+            const data = await ClinicSync.api('POST', '/hpi', d);
+            if (!data || !data.text) throw new Error('empty');
+            text = data.text; source = 'ia';
+        } catch (err) {
+            text = localHpiDraft(d); source = 'local';
+        }
+
+        const area = document.getElementById('txtHPI');
+        if (area.value.trim()) {
+            if (confirm("L'anamnèse contient déjà du texte.\n\nOK = REMPLACER par le brouillon\nAnnuler = AJOUTER à la suite")) area.value = text;
+            else area.value = area.value.replace(/\s+$/, '') + '\n\n' + text;
+        } else {
+            area.value = text;
+        }
+        area.dispatchEvent(new Event('input', { bubbles: true }));
+        const auto = document.getElementById('chkHpiAuto'); if (auto) auto.checked = true;
+        const ver = document.getElementById('chkHpiVerified'); if (ver) ver.checked = false;
+        setNote(source === 'ia'
+            ? "✓ Brouillon rédigé par l'IA : relisez et corrigez-le."
+            : '✓ Brouillon généré localement (IA non disponible) : relisez et complétez-le.');
+    } catch (e) {
+        console.error('[HPI]', e);
+        setNote('⚠ Erreur : ' + (e && e.message ? e.message : e));
+        alert("L'assistant a rencontré une erreur : " + (e && e.message ? e.message : e));
+    } finally {
+        if (btn) btn.disabled = false;
     }
-    area.dispatchEvent(new Event('input', { bubbles: true }));
-    document.getElementById('chkHpiAuto').checked = true;
-    document.getElementById('chkHpiVerified').checked = false;
-    note.textContent = source === 'ia'
-        ? '✓ Brouillon rédigé par l\'IA : relisez et corrigez-le.'
-        : '✓ Brouillon généré localement (IA non disponible) : relisez et complétez-le.';
 }
-
 
 // Champs de l'assistant (conservés avec la visite) et case « Vérifiée »
 const HPI_FIELD_IDS = ['hpiOnset', 'hpiMode', 'hpiSite', 'hpiCharacter', 'hpiAggravating', 'hpiRelieving', 'hpiAssociated',

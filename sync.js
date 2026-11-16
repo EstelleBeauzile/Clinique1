@@ -314,7 +314,7 @@
 
     function startApp() {
         const script = document.createElement('script');
-        script.src = 'app.js';
+        script.src = 'app.js?v=20261115b';
         script.onload = () => {
             appStarted = true;
             // Pas d'interrogation quand l'onglet est en arrière-plan ; la synchro reprend au retour (focus / visibilitychange).
