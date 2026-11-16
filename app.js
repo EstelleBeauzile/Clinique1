@@ -1606,6 +1606,9 @@ function switchVisit(vId) {
     document.getElementById('vSpO2').value = v.spo2 || '';
     document.getElementById('vGlyc').value = v.glyc || '';
     document.getElementById('txtHPI').value = v.hpi || '';
+    document.getElementById('chkHpiAuto').checked = !!v.hpiAuto;
+    document.getElementById('chkHpiVerified').checked = !!v.hpiVerified;
+    restoreHpiFields(v.hpiFields);
     document.getElementById('txtLabResults').value = v.labResults || '';
     document.getElementById('txtEKGResults').value = v.ekgResults || '';
     document.getElementById('txtSonoResults').value = v.sonoResults || '';
@@ -1660,6 +1663,9 @@ function saveCurrentVisit() {
     v.spo2 = document.getElementById('vSpO2').value;
     v.glyc = document.getElementById('vGlyc').value;
     v.hpi = document.getElementById('txtHPI').value;
+    v.hpiAuto = document.getElementById('chkHpiAuto').checked;
+    v.hpiVerified = document.getElementById('chkHpiVerified').checked;
+    v.hpiFields = readHpiFields();
     v.labResults = document.getElementById('txtLabResults').value;
     v.ekgResults = document.getElementById('txtEKGResults').value;
     v.sonoResults = document.getElementById('txtSonoResults').value;
@@ -3044,7 +3050,7 @@ function buildVisitHtml(v, index) {
                     <td>${pe(v.hr)}</td><td>${pe(v.temp)} °C</td><td>${pe(v.fr)}</td><td>${pe(v.spo2)} %</td><td>${pe(v.glyc)}</td>
                 </tr></tbody>
             </table>
-            ${textBlock('Histoire de la maladie actuelle', v.hpi)}
+            ${textBlock('Histoire de la maladie actuelle', v.hpi)}${v.hpiAuto ? `<p style="font-size:0.8em;color:#555;"><em>Texte formulé automatiquement à partir des données saisies — ${v.hpiVerified ? 'vérifié par le médecin' : 'non vérifié'}.</em></p>` : ''}
             ${(v.ros && v.ros.length) ? `<p class="lbl">Revue des systèmes</p><div class="txt">${escapeHtml(v.ros.join(', '))}</div>` : ''}
             ${textBlock('Résultats de laboratoire', v.labResults)}
             ${textBlock('Résultats ECG', v.ekgResults)}
@@ -3075,7 +3081,7 @@ function getVisitSnapshot() {
             consultationReason: g('txtConsultationReason'),
             height: g('vHeight'), weight: g('vWeight'), bp: g('vBP'), hr: g('vHR'), temp: g('vTemp'),
             fr: g('vFR'), spo2: g('vSpO2'), glyc: g('vGlyc'),
-            hpi: g('txtHPI'), labResults: g('txtLabResults'), ekgResults: g('txtEKGResults'),
+            hpi: g('txtHPI'), hpiAuto: c('chkHpiAuto'), hpiVerified: c('chkHpiVerified'), labResults: g('txtLabResults'), ekgResults: g('txtEKGResults'),
             sonoResults: g('txtSonoResults'), imagingResults: g('txtImagingResults'),
             assessment: g('txtAssessment'), plan: g('txtPlan'), docName: g('docName'),
             ros: Array.from(document.querySelectorAll('#rosContainer input:checked')).map(cb => cb.value),
@@ -3220,3 +3226,115 @@ async function importBackupFile(input) {
     alert(added ? `${added} élément(s) importé(s) et synchronisé(s). La page va se recharger.` : 'Aucun nouvel élément à importer (tout est déjà présent).');
     location.reload();
 }
+
+
+// ---------- Assistant de rédaction : Histoire de la maladie ----------
+function collectHpiInput() {
+    const val = id => (document.getElementById(id) || {}).value || '';
+    const p = patients.find(pt => pt.id === activePatientId) || {};
+    const history = document.getElementById('hpiUseHistory').checked
+        ? Array.from(document.querySelectorAll('.ant-med-chk:checked')).map(c => c.value).join(', ')
+        : '';
+    return {
+        age: p.age || '',
+        sex: p.sex || '',
+        profession: p.profession || '',
+        reason: val('txtConsultationReason').trim(),
+        history,
+        fields: {
+            onset: val('hpiOnset').trim(), mode: val('hpiMode'), site: val('hpiSite').trim(),
+            character: val('hpiCharacter').trim(), aggravating: val('hpiAggravating').trim(),
+            relieving: val('hpiRelieving').trim(), associated: val('hpiAssociated').trim(),
+            before: val('hpiBefore').trim(), after: val('hpiAfter').trim(),
+            tried: val('hpiTried').trim(), evolution: val('hpiEvolution'),
+            courseMode: val('hpiCourseMode'), courseDetails: val('hpiCourseDetails').trim(),
+            context: val('hpiContext').trim()
+        }
+    };
+}
+
+// Rédaction locale (sans IA, sans Internet) : phrases construites à partir des champs renseignés.
+function localHpiDraft(d) {
+    const f = d.fields;
+    const noun = d.sex === 'Masculin' ? 'Patient' : (d.sex === 'Féminin' ? 'Patiente' : 'Patient(e)');
+    const s = [];
+    let intro = noun + (d.age ? ' de ' + d.age + ' ans' : '');
+    if (d.profession) intro += ', ' + d.profession.charAt(0).toLowerCase() + d.profession.slice(1);
+    if (d.history) intro += ', avec comme antécédents : ' + d.history;
+    intro += d.reason ? ', qui consulte pour ' + d.reason.charAt(0).toLowerCase() + d.reason.slice(1) + '.' : ', qui consulte.';
+    s.push(intro);
+    if (f.onset || f.mode) {
+        let t = 'Les symptômes ' + (f.onset ? 'évoluent ' + (/^(depuis|il y a)/i.test(f.onset) ? '' : 'depuis ') + f.onset : 'ont débuté');
+        if (f.mode) t += ', de début ' + f.mode;
+        s.push(t + '.');
+    }
+    if (f.site) s.push('Ils sont localisés au niveau : ' + f.site + '.');
+    if (f.character) s.push('Caractère et intensité : ' + f.character + '.');
+    if (f.aggravating) s.push('Facteurs aggravants : ' + f.aggravating + '.');
+    if (f.relieving) s.push('Facteurs soulageants : ' + f.relieving + '.');
+    if (f.before) s.push('Avant le début des troubles, on retrouve : ' + f.before.replace(/[.!?]$/, '') + '.');
+    if (f.associated) s.push('On note par ailleurs : ' + f.associated + '.');
+    if (f.after) s.push('Depuis, sont survenus : ' + f.after.replace(/[.!?]$/, '') + '.');
+    if (f.tried) s.push('Traitements déjà essayés : ' + f.tried + '.');
+    if (f.evolution) s.push("L'évolution est " + (f.evolution === 'aggravation' ? "marquée par une aggravation" : f.evolution === 'amélioration' ? "marquée par une amélioration" : f.evolution) + '.');
+    if (f.courseMode) s.push("Le mode d'évolution est " + f.courseMode + '.');
+    if (f.courseDetails) s.push(f.courseDetails.replace(/\s*$/, /[.!?]$/.test(f.courseDetails) ? '' : '.'));
+    if (f.context) s.push(f.context.replace(/\s*$/, /[.!?]$/.test(f.context) ? '' : '.'));
+    return s.join(' ');
+}
+
+async function generateHpi() {
+    const d = collectHpiInput();
+    const note = document.getElementById('hpiAssistantNote');
+    const btn = document.getElementById('btnGenerateHpi');
+    const filled = Object.values(d.fields).some(Boolean) || d.reason;
+    if (!filled) { alert("Renseignez au moins le motif de consultation ou un des champs de l'assistant."); return; }
+
+    btn.disabled = true;
+    note.textContent = 'Rédaction en cours…';
+    let text = '', source = '';
+    try {
+        const data = await ClinicSync.api('POST', '/hpi', d);
+        text = data.text; source = 'ia';
+    } catch (err) {
+        text = localHpiDraft(d); source = 'local';
+    }
+    btn.disabled = false;
+
+    const area = document.getElementById('txtHPI');
+    if (area.value.trim()) {
+        if (confirm("L'anamnèse contient déjà du texte.\n\nOK = REMPLACER par le brouillon\nAnnuler = AJOUTER à la suite")) area.value = text;
+        else area.value = area.value.replace(/\s+$/, '') + '\n\n' + text;
+    } else {
+        area.value = text;
+    }
+    area.dispatchEvent(new Event('input', { bubbles: true }));
+    document.getElementById('chkHpiAuto').checked = true;
+    document.getElementById('chkHpiVerified').checked = false;
+    note.textContent = source === 'ia'
+        ? '✓ Brouillon rédigé par l\'IA : relisez et corrigez-le.'
+        : '✓ Brouillon généré localement (IA non disponible) : relisez et complétez-le.';
+}
+
+
+// Champs de l'assistant (conservés avec la visite) et case « Vérifiée »
+const HPI_FIELD_IDS = ['hpiOnset', 'hpiMode', 'hpiSite', 'hpiCharacter', 'hpiAggravating', 'hpiRelieving', 'hpiAssociated',
+    'hpiTried', 'hpiEvolution', 'hpiCourseMode', 'hpiBefore', 'hpiAfter', 'hpiCourseDetails', 'hpiContext'];
+
+function readHpiFields() {
+    const out = {};
+    HPI_FIELD_IDS.forEach(id => { const el = document.getElementById(id); if (el && el.value) out[id] = el.value; });
+    return out;
+}
+
+function restoreHpiFields(saved) {
+    HPI_FIELD_IDS.forEach(id => { const el = document.getElementById(id); if (el) el.value = (saved && saved[id]) || ''; });
+}
+
+// Toute modification manuelle du texte après vérification retire la coche « Vérifiée ».
+document.addEventListener('input', e => {
+    if (e.target && e.target.id === 'txtHPI' && e.isTrusted) {
+        const v = document.getElementById('chkHpiVerified');
+        if (v) v.checked = false;
+    }
+});

@@ -896,7 +896,38 @@
                         </button>
                     </div>
                     <div id="dictationStatusBadge" style="font-size: 0.75rem; color: var(--warning-orange); font-weight: 600; margin-bottom: 6px; display: none;">🔴 En écoute... Parlez pour dicter l'anamnèse.</div>
+                    <details id="hpiAssistant" style="margin-bottom: 10px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 10px;">
+                        <summary style="cursor: pointer; font-size: 0.82rem; font-weight: 700; color: var(--primary-green);">🤖 Assistant de rédaction : générer l'histoire de la maladie</summary>
+                        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem;">
+                            <p style="color: var(--text-muted); margin: 0;">Renseignez ce que vous savez (tout est facultatif, au moins un champ). L'âge, le sexe et le motif de consultation sont repris automatiquement. Le texte généré est un brouillon à relire.</p>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">
+                                <input type="text" id="hpiOnset" placeholder="Début / durée (ex : depuis 3 jours)" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+                                <select id="hpiMode" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);"><option value="">Mode de début…</option><option value="brutal">Brutal</option><option value="progressif">Progressif</option></select>
+                                <input type="text" id="hpiSite" placeholder="Siège / localisation" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+                                <input type="text" id="hpiCharacter" placeholder="Caractère / intensité (ex : brûlure, 7/10)" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+                                <input type="text" id="hpiAggravating" placeholder="Facteurs aggravants" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+                                <input type="text" id="hpiRelieving" placeholder="Facteurs soulageants" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+                                <input type="text" id="hpiAssociated" placeholder="Symptômes associés" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+                                <input type="text" id="hpiTried" placeholder="Traitements déjà essayés" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+                                <select id="hpiEvolution" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);"><option value="">Évolution…</option><option value="aggravation">Aggravation</option><option value="stable">Stable</option><option value="amélioration">Amélioration</option><option value="fluctuante">Fluctuante</option></select>
+                                <select id="hpiCourseMode" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);"><option value="">Mode d'évolution…</option><option value="continu">Continu</option><option value="intermittent">Intermittent</option><option value="par crises / poussées">Par crises / poussées</option><option value="progressivement croissant">Progressivement croissant</option><option value="régressif">Régressif</option><option value="en dents de scie">En dents de scie</option></select>
+                            </div>
+                            <textarea id="hpiBefore" placeholder="Symptômes et signes survenus AVANT le début (prodromes, épisodes antérieurs similaires…)" style="min-height: 50px;"></textarea>
+                            <textarea id="hpiAfter" placeholder="Symptômes et signes survenus APRÈS / depuis le début (apparition de nouveaux signes, complications…)" style="min-height: 50px;"></textarea>
+                            <textarea id="hpiCourseDetails" placeholder="Détails de l'évolution (chronologie : jour par jour, poussées, réponse aux traitements…)" style="min-height: 50px;"></textarea>
+                            <textarea id="hpiContext" placeholder="Autres informations (contexte, voyage, contage, chronologie détaillée…)" style="min-height: 60px;"></textarea>
+                            <label style="display: flex; gap: 6px; align-items: center;"><input type="checkbox" id="hpiUseHistory" checked> Inclure les antécédents médicaux cochés (HTA, diabète…)</label>
+                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                <button type="button" class="btn btn-green" id="btnGenerateHpi" onclick="generateHpi()" style="font-size: 0.82rem;">✨ Rédiger l'histoire de la maladie</button>
+                                <span id="hpiAssistantNote" style="font-size: 0.75rem; color: var(--text-muted);"></span>
+                            </div>
+                        </div>
+                    </details>
                     <textarea id="txtHPI" placeholder="Chronologie des symptômes, détails de l'histoire de la maladie..."></textarea>
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; font-size: 0.82rem;">
+                        <label style="display: flex; gap: 6px; align-items: center;"><input type="checkbox" id="chkHpiAuto"> Texte formulé automatiquement avec les données insérées</label>
+                        <label style="display: flex; gap: 6px; align-items: center; font-weight: 700;"><input type="checkbox" id="chkHpiVerified"> Vérifiée</label>
+                    </div>
                 </div>
 
                 <!-- Examen Physique après Anamnèse -->
@@ -2010,7 +2041,7 @@
                                 <h4 style="color: #059669; margin-bottom: 5px;">Visite #${i + 1} (${v.dateTime || 'N/A'})</h4>
                                 <p><strong>Motif :</strong> ${v.consultationReason || '--'}</p>
                                 <p><strong>Signes vitaux :</strong> Taille: ${v.height || '--'}cm | Poids: ${v.weight || '--'}kg | BP: ${v.bp || '--'} | FR: ${v.fr || '--'} | SpO2: ${v.spo2 || '--'}% | Glyc: ${v.glyc || '--'} | Temp: ${v.temp || '--'}°C</p>
-                                <p><strong>Histoire de la maladie :</strong> ${v.hpi || '--'}</p>
+                                <p><strong>Histoire de la maladie :</strong> ${v.hpi || '--'}${v.hpiAuto ? ` <em style="font-size:0.75rem; color:var(--text-muted);">(texte formulé automatiquement, ${v.hpiVerified ? 'vérifié ✓' : 'non vérifié'})</em>` : ''}</p>
                                 <p><strong>Diagnostic :</strong> ${v.assessment || '--'}</p>
                                 <p><strong>Examens cliniques :</strong> ${(v.adminExamsList || []).map(e => e.examName).join(', ') || '--'}</p>
                                 <p><strong>Plan :</strong> ${v.plan || '--'}</p>
