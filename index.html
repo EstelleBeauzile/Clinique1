@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinique Marie Ursule Vervil - Accueil & Administration</title>
+    <!-- Inclusion de Chart.js pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Inclusion de html2pdf.js pour l'exportation PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-input: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary-green: #059669;
+            --primary-green-hover: #047857;
+            --border-color: #cbd5e1;
+            --border-light: #e2e8f0;
+            --danger-red: #dc2626;
+            --warning-orange: #d97706;
+            --purple-due: #5b21b6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .user-bar {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            width: 100%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            z-index: 1500;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-badge {
+            background: var(--primary-green);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .clinic-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-green);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .clinic-header-titles h1 {
+            color: var(--primary-green);
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .clinic-header-titles p {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .section-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .home-dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .home-action-card {
+            background: linear-gradient(to bottom right, #ffffff, #f0fdf4);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .home-action-card:hover {
+            border-color: var(--primary-green);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1);
+        }
+
+        .home-action-card h3 {
+            color: var(--primary-green);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .home-action-card p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .home-icon {
+            font-size: 2.5rem;
+        }
+
+        .section-title {
+            color: var(--primary-green);
+            font-size: 1.05rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible-header {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapsible-header:hover {
+            color: var(--primary-green-hover);
+        }
+
+        .btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .btn-green { background-color: var(--primary-green); color: white; }
+        .btn-green:hover { background-color: var(--primary-green-hover); }
+        .btn-sec { background-color: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-warn { background-color: #d97706; color: white; }
+        .btn-danger { background-color: var(--danger-red); color: white; }
+        .btn-danger:hover { background-color: #b91c1c; }
+
+        .demographics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            font-size: 0.85rem;
+        }
+
+        .demo-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .demo-item label {
+            color: var(--primary-green);
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+
+        .demo-item input, .demo-item select, .demo-item span {
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 8px;
+        }
+
+        .vital-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .vital-box label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .vital-box input {
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .bmi-badge {
+            margin-top: 4px;
+            padding: 3px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-align: center;
+            background-color: var(--bg-input);
+            color: var(--primary-green);
+        }
+
+        textarea {
+            width: 100%;
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            min-height: 80px;
+            resize: vertical;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .ros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
+        }
+
+        .ros-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            background-color: var(--bg-input);
+            padding: 8px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .ros-item input {
+            accent-color: var(--primary-green);
+        }
+
+        .diag-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+        }
+
+        .diag-card {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .diag-card h3 {
+            color: var(--primary-green);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .report-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .report-table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 600px;
+        }
+
+        .report-table th, .report-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+        }
+
+        .report-table th {
+            background-color: var(--bg-input);
+            color: var(--primary-green);
+            font-weight: 700;
+        }
+
+        .mentions-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .mention-checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .mention-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .mention-checkbox-item input {
+            accent-color: var(--primary-green);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .finance-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .finance-card {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .finance-card:hover {
+            border-color: var(--primary-green);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(5,150,105,0.1);
+        }
+
+        .finance-card h4 {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .finance-card .fin-val {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary-green);
+        }
+
+        .finance-card .fin-ts {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 10px;
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            width: 480px;
+            max-width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        #loginScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            width: 360px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        @media print {
+            .btn, .user-bar, .clinic-header-container button, button, input[type="file"], canvas { display: none !important; }
+            body { background: white; color: black; height: auto; overflow: visible; }
+            .main-content { padding: 0; overflow: visible; max-width: 100%; }
+            .section-card { border: none; background: white; box-shadow: none; padding: 8px 0; }
+            input, textarea { border: none !important; background: transparent !important; color: black !important; }
+            .section-title { color: #059669 !important; border-bottom: 2px solid #059669; }
+        }
+    
+        /* Couleur du nom du patient selon son statut */
+        #bannerName { color: var(--primary-green); }
+        #bannerName.patient-referred-title { color: var(--warning-orange); }
+        #bannerName.patient-deceased-title { color: var(--danger-red); }
+        #bannerName.patient-due-title { color: var(--purple-due); }
+        .patient-debt-rx, .patient-debt-ex {
+            display: inline-block; font-size: 0.65rem; font-weight: 700; color: #fff;
+            padding: 1px 6px; border-radius: 10px; margin-left: 4px; vertical-align: middle;
+        }
+        .patient-debt-rx { background: var(--purple-due); }
+        .patient-debt-ex { background: var(--danger-red); }
+    </style>
+</head>
+<body>
+
+    <!-- 0. LOGIN SCREEN -->
+    <div id="loginScreen">
+        <div class="login-card">
+            <h2 style="color: var(--primary-green); font-size: 1.3rem; margin-bottom: 6px;">Clinique Marie Ursule Vervil</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Connexion au Système Médical</p>
+            <form onsubmit="handleLogin(event)" style="display:flex; flex-direction:column; gap:12px; text-align:left;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Nom d'utilisateur</label>
+                    <input type="text" id="loginUsername" required style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:6px; margin-top:3px;">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Mot de passe</label>
+                    <input type="password" id="loginPassword" required style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:6px; margin-top:3px;">
+                </div>
+                <button type="submit" class="btn btn-green" style="width:100%; padding:10px; margin-top:8px;">Se connecter</button>
+            </form>
+            <p id="loginError" style="color:var(--danger-red); font-size:0.8rem; margin-top:12px; display:none;">Identifiants incorrects.</p>
+        </div>
+    </div>
+
+    <!-- User Header Bar -->
+    <div class="user-bar" id="userBar" style="display: none;">
+        <div class="user-info">
+            <span>Utilisateur : <strong id="currentUserDisplay" style="cursor: pointer; text-decoration: underline;" onclick="openSelfPasswordModal()" title="Cliquez ici pour modifier votre mot de passe">--</strong></span>
+            <span class="user-badge" id="currentUserRoleBadge">--</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="btn btn-sec" style="font-size:0.75rem; padding:4px 10px;" onclick="openSelfPasswordModal()">🔑 Modifier mon mot de passe</button>
+            <button class="btn btn-green" style="font-size:0.75rem; padding:4px 10px;" onclick="handleLogout()">🚪 Quitter la session</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        
+        <div class="clinic-header-container">
+            <div class="clinic-header-titles">
+                <h1>Clinique Marie Ursule Vervil</h1>
+                <p>Fiche de Consultation Médicale & Dossier Ambulatoire</p>
+            </div>
+            <div>
+                <button class="btn btn-green" onclick="handleLogout()" style="display: flex; align-items: center; gap: 6px; font-weight: 700; padding: 8px 16px;">
+                    🚪 Déconnexion
+                </button>
+            </div>
+        </div>
+
+        <!-- 1. HOME / DASHBOARD VIEW -->
+        <div id="homeSectionView" style="display: none;">
+            <div class="section-card">
+                <div class="section-title">
+                    <span>🏠 Accueil - Tableau de Bord Principal</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">
+                    Bienvenue dans le système de gestion de la Clinique Marie Ursule Vervil. Veuillez sélectionner l'une des rubriques ci-dessous :
+                </p>
+
+                <div class="home-dashboard-grid">
+                    <div class="home-action-card" onclick="showPatientRegisterSection()">
+                        <div class="home-icon">👥</div>
+                        <h3>Registre des patients</h3>
+                        <p>Consulter, rechercher et classer la liste complète des patients (par ordre alphabétique ou code unique).</p>
+                    </div>
+
+                    <div class="home-action-card" id="cardPharmacy" onclick="showPharmacyDashboard()" style="display: none;">
+                        <div class="home-icon">💊</div>
+                        <h3>Pharmacie</h3>
+                        <p>Gérer les stocks de médicaments, les transactions, les approvisionnements et la délivrance.</p>
+                    </div>
+
+                    <div class="home-action-card" id="cardReports" onclick="showReportsSection()">
+                        <div class="home-icon">📊</div>
+                        <h3>Rapports & Graphes</h3>
+                        <p>Analyser les historiques, les graphiques analytiques et exporter les données.</p>
+                    </div>
+
+                    <div class="home-action-card" id="cardAdmin" onclick="showAdminSection()">
+                        <div class="home-icon">📁</div>
+                        <h3>Administration</h3>
+                        <p>Gérer les examens cliniques, les patients hors-clinique, les dossiers déclassés et la synthèse financière.</p>
+                    </div>
+
+                    <div class="home-action-card" id="cardUsers" onclick="promptPinForUserManagement()">
+                        <div class="home-icon">⚙️</div>
+                        <h3>Gestion Utilisateurs 🔒</h3>
+                        <p>Créer, modifier les mots de passe ou supprimer des comptes d'accès (Protéger par PIN).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHARMACY DASHBOARD VIEW -->
+        <div id="pharmacyDashboardView" style="display: none;">
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;" class="section-title">
+                    <span>💊 Pharmacie - Tableau de Bord</span>
+                    <button class="btn btn-green" onclick="showHomeSection()">← Accueil Principal</button>
+                </div>
+                <div class="home-dashboard-grid">
+                    <div class="home-action-card" onclick="showPharmacyStockSection()">
+                        <div class="home-icon">📦</div>
+                        <h3>Stock des Médicaments</h3>
+                        <p>Gérer les articles, prix, quantités et unités (boîte, flacon, feuille, comprimé/gélule).</p>
+                    </div>
+                    <div class="home-action-card" onclick="showPharmacyTransactionsDashboard()">
+                        <div class="home-icon">💳</div>
+                        <h3>Transactions</h3>
+                        <p>Accéder aux approvisionnements et au registre des recettes (avec documents visualisables et téléchargeables).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHARMACY STOCK SECTION VIEW -->
+        <div id="pharmacyStockSectionView" style="display: none;">
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;" class="section-title">
+                    <span>📦 Stock des Médicaments - Pharmacie</span>
+                    <button class="btn btn-green" onclick="showPharmacyDashboard()">← Tableau de bord Pharmacie</button>
+                </div>
+
+                <div class="report-controls" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Trier par :</label>
+                        <select id="pharmacySortSelect" onchange="renderPharmacyTable()" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); min-width: 200px;">
+                            <option value="commercial">Nom commercial (Alphabétique)</option>
+                            <option value="active">Nom du principe actif (Alphabétique)</option>
+                            <option value="code">Code PMUV (Alphabétique)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button class="btn btn-green" onclick="openPharmacyAddModal()">+ Ajouter un médicament</button>
+                    </div>
+                </div>
+
+                <div class="report-table-container">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Code PMUV</th>
+                                <th>Nom Commercial</th>
+                                <th>Principe Actif</th>
+                                <th>Forme / Dosage</th>
+                                <th>Unité</th>
+                                <th>Quantité Stock</th>
+                                <th>Prix Unitaire</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pharmacyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHARMACY TRANSACTIONS DASHBOARD VIEW -->
+        <div id="pharmacyTransactionsDashboardView" style="display: none;">
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;" class="section-title">
+                    <span>💳 Transactions - Tableau de Bord</span>
+                    <button class="btn btn-green" onclick="showPharmacyDashboard()">← Tableau de bord Pharmacie</button>
+                </div>
+                <div class="home-dashboard-grid">
+                    <div class="home-action-card" onclick="showPharmacySuppliesSection()">
+                        <div class="home-icon">📑</div>
+                        <h3>Historique des Approvisionnements</h3>
+                        <p>Visualiser et joindre des reçus d'achats.</p>
+                    </div>
+                    <div class="home-action-card" onclick="showPharmacyRevenuesSection()">
+                        <div class="home-icon">💰</div>
+                        <h3>Recettes</h3>
+                        <p>Enregistrer les ventes, avec documents justificatifs visualisables et téléchargeables.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHARMACY SUPPLIES SECTION VIEW -->
+        <div id="pharmacySuppliesSectionView" style="display: none;">
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;" class="section-title">
+                    <span>📑 Historique des Approvisionnements - Pharmacie</span>
+                    <button class="btn btn-green" onclick="showPharmacyTransactionsDashboard()">← Tableau de bord Transactions</button>
+                </div>
+
+                <div style="background: var(--bg-input); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
+                        <button type="button" onclick="openSupplyModal()" style="width: 50px; height: 50px; border-radius: 50%; background: var(--primary-green); color: white; border: none; font-size: 1.6rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 6px rgba(5,150,105,0.2);" title="Ajouter un approvisionnement">+</button>
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--primary-green);">Ajouter un nouveau reçu d'approvisionnement</span>
+                        <button class="btn btn-sec" style="margin-left:auto;" onclick="printSupplyList()">🖨️ Imprimer la liste</button>
+                    </div>
+
+                    <div class="report-table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Date d'Achat</th>
+                                    <th>Fichier / Reçu</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="supplyTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHARMACY REVENUES SECTION VIEW -->
+        <div id="pharmacyRevenuesSectionView" style="display: none;">
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;" class="section-title">
+                    <span>💰 Recettes (Ventes & Encaissements) - Pharmacie</span>
+                    <button class="btn btn-green" onclick="showPharmacyTransactionsDashboard()">← Tableau de bord Transactions</button>
+                </div>
+
+                <div style="background: var(--bg-input); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                        <h3 style="font-size: 0.95rem; color: var(--primary-green);">Registre des Recettes</h3>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            <button class="btn btn-sec" onclick="printRevenueList()">🖨️ Imprimer la liste</button>
+                            <button class="btn btn-green" onclick="openRevenueModal()">+ Enregistrer une Recette</button>
+                        </div>
+                    </div>
+
+                    <div class="report-table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Numéro de la fiche de vente</th>
+                                    <th>Document joint (Visualisable / Téléchargeable)</th>
+                                    <th>Montant (HTG)</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="revenueTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. PATIENT REGISTER SECTION VIEW -->
+        <div id="patientRegisterSectionView" style="display: none;">
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;" class="section-title">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <span>👥 Registre des Patients de la Clinique</span>
+                        <span id="patientCounterBadge" style="background: var(--primary-green); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem;">0 patient(s)</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-green" onclick="openNewPatientModal()">+ Enregistrer Patient</button>
+                        <button class="btn btn-sec" onclick="showHomeSection()">← Accueil</button>
+                    </div>
+                </div>
+
+                <div class="report-controls">
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Classer / Trier par :</label>
+                        <select id="patientSortSelect" onchange="renderPatientRegisterTable()" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); min-width: 200px;">
+                            <option value="alpha">Ordre alphabétique (Nom du patient)</option>
+                            <option value="code">Code clinique unique (ID)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="report-table-container">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">ID Unique</th>
+                                <th style="width: 30%;">Nom & Surnom</th>
+                                <th style="width: 25%;">NIF / NINU</th>
+                                <th style="width: 15%;">Téléphone</th>
+                                <th style="width: 10%;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientRegisterTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Consultation View -->
+        <div id="consultationView" style="display: none;">
+            
+            <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <button class="btn btn-sec" onclick="showPatientRegisterSection()">← Retour au Registre des patients</button>
+                <!-- Bouton chargement document dans le dossier patient -->
+                <div>
+                    <input type="file" id="patientDocFileInput" style="display: none;" onchange="handlePatientDocumentUpload(event)">
+                    <button class="btn btn-sec" onclick="document.getElementById('patientDocFileInput').click()" style="font-size: 0.8rem;">📎 Charger un document au dossier</button>
+                </div>
+            </div>
+
+            <!-- Liste des documents chargés dans le dossier patient -->
+            <div class="section-card" id="patientDocumentsCard" style="display: none;">
+                <div class="section-title">📁 Documents du Dossier Patient</div>
+                <div class="report-table-container">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Nom du Fichier</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientDocumentsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Demographics Card -->
+            <div class="section-card" id="demographicsCardContainer">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-light); padding-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h2 id="bannerName" style="font-size: 1.2rem;">---</h2>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">NIF / NINU : <strong id="bannerNif">---</strong> | ID : <strong id="bannerClinicId">---</strong></span>
+                    </div>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                        <button class="btn btn-green" style="font-size: 0.75rem; padding: 5px 10px;" onclick="exportPatientSummaryPDF()">📄 Résumé PDF</button>
+                        <button class="btn btn-sec" id="editProfileBtn" onclick="toggleEditProfile()">Modifier</button>
+                        <button class="btn btn-warn" onclick="printPatientRecord()">🖨️ Imprimer le dossier</button>
+                        <button class="btn btn-danger" id="deletePatientBtn" onclick="deleteCurrentPatient()">🗑️ Suppr.</button>
+                    </div>
+                </div>
+                <div class="demographics-grid" id="demoGrid"></div>
+            </div>
+
+            <div class="section-card" style="padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <label style="font-size: 0.8rem; font-weight: 600;">Visite :</label>
+                        <select id="visitDropdown" onchange="switchVisit(this.value)" style="padding: 5px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;"></select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--primary-green);">Date & Heure :</label>
+                        <input type="datetime-local" id="visitDateTimeInput" style="padding: 4px 8px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
+                    </div>
+                    <button type="button" class="btn btn-sec" style="font-size: 0.75rem; padding: 5px 10px;" onclick="printCurrentVisit()">🖨️ Imprimer la visite</button>
+                </div>
+                <div>
+                    <button class="btn btn-green" id="btnNewVisit" onclick="addNewVisit()">+ Nouvelle Visite</button>
+                </div>
+            </div>
+
+            <div id="consultForm">
+                
+                <div class="section-card">
+                    <div class="section-title">1. Signes Vitaux & Anthropométrie</div>
+                    <div class="vitals-grid">
+                        <div class="vital-box">
+                            <label>Taille (cm)</label>
+                            <input type="number" id="vHeight" placeholder="170" oninput="calculateBMI()">
+                        </div>
+                        <div class="vital-box">
+                            <label>Poids (kg)</label>
+                            <input type="number" id="vWeight" placeholder="70" oninput="calculateBMI()">
+                        </div>
+                        <div class="vital-box">
+                            <label>IMC (BMI)</label>
+                            <input type="text" id="vBMI" readonly placeholder="--">
+                            <div class="bmi-badge" id="bmiBadge">Statut : --</div>
+                        </div>
+                        <div class="vital-box">
+                            <label>Tension (mmHg)</label>
+                            <input type="text" id="vBP" placeholder="120/80">
+                        </div>
+                        <div class="vital-box">
+                            <label>Pouls (bpm)</label>
+                            <input type="number" id="vHR" placeholder="72">
+                        </div>
+                        <div class="vital-box">
+                            <label>Temp (°C)</label>
+                            <input type="number" step="0.1" id="vTemp" placeholder="36.6">
+                        </div>
+                        <div class="vital-box">
+                            <label>FR (cpm)</label>
+                            <input type="number" id="vFR" placeholder="18">
+                        </div>
+                        <div class="vital-box">
+                            <label>SpO2 (%)</label>
+                            <input type="number" id="vSpO2" placeholder="98">
+                        </div>
+                        <div class="vital-box">
+                            <label>Glyc. cap (mg/dL)</label>
+                            <input type="number" id="vGlyc" placeholder="100">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title">2. Motif de Consultation</div>
+                    <input type="text" id="txtConsultationReason" placeholder="Motif principal de la consultation..." style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); padding: 8px 10px; border-radius: 6px; font-size: 0.9rem;">
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>3. Anamnèse & Histoire de la Maladie (HPI)</span>
+                        <button type="button" class="btn btn-sec" id="btnDictateHPI" onclick="toggleDictation()" style="font-size: 0.78rem; display: flex; align-items: center; gap: 5px;">
+                            🎤 <span id="dictateBtnText">Activer Dictée Vocale</span>
+                        </button>
+                    </div>
+                    <div id="dictationStatusBadge" style="font-size: 0.75rem; color: var(--warning-orange); font-weight: 600; margin-bottom: 6px; display: none;">🔴 En écoute... Parlez pour dicter l'anamnèse.</div>
+                    <textarea id="txtHPI" placeholder="Chronologie des symptômes, détails de l'histoire de la maladie..."></textarea>
+                </div>
+
+                <!-- Examen Physique après Anamnèse -->
+                <div class="section-card">
+                    <div class="section-title">4. Examen Physique</div>
+                    <textarea id="txtPhysicalExam" placeholder="Résultats de l'examen physique général et systématique..."></textarea>
+                </div>
+
+                <!-- Antécédents (collapsé par défaut) -->
+                <div class="section-card">
+                    <div class="section-title collapsible-header" onclick="toggleCollapsibleSection('antecedentsCollapsibleBody', 'antecedentsToggleIcon')">
+                        <span>5. Antécédents Médicaux, Chirurgicaux & Familiaux</span>
+                        <span id="antecedentsToggleIcon" style="font-size: 0.9rem; font-weight: bold;">▶ Déplier</span>
+                    </div>
+                    <div id="antecedentsCollapsibleBody" style="display: none; margin-top: 10px; display: flex; flex-direction: column; gap: 15px;">
+                        
+                        <!-- Antécédents personnels (Médicaux) -->
+                        <div style="background: var(--bg-input); padding: 12px; border-radius: 8px;">
+                            <label style="font-size: 0.82rem; font-weight: 700; color: var(--primary-green); display: block; margin-bottom: 8px;">Antécédents personnels (Médicaux) :</label>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; font-size: 0.8rem; margin-bottom: 8px;">
+                                <label class="ros-item"><input type="checkbox" class="ant-med-chk" value="HTA"> HTA</label>
+                                <label class="ros-item"><input type="checkbox" class="ant-med-chk" value="Diabète"> Diabète</label>
+                                <label class="ros-item"><input type="checkbox" class="ant-med-chk" value="AVC"> AVC</label>
+                                <label class="ros-item"><input type="checkbox" class="ant-med-chk" value="Insuffisance cardiaque"> Insuffisance cardiaque</label>
+                                <label class="ros-item"><input type="checkbox" class="ant-med-chk" value="Insuffisance rénale/Néphropathie"> Insuffisance rénale/Néphropathie</label>
+                                <label class="ros-item"><input type="checkbox" class="ant-med-chk" value="Asthme"> Asthme</label>
+                                <label class="ros-item"><input type="checkbox" class="ant-med-chk" value="TB pulm"> TB pulm</label>
+                                <label class="ros-item"><input type="checkbox" class="ant-med-chk" value="Autres"> Autres</label>
+                            </div>
+                            <input type="text" id="txtAntMedDetails" placeholder="Précisions ou autres antécédents médicaux..." style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Antécédents médicamenteux -->
+                        <div>
+                            <label style="font-size: 0.82rem; font-weight: 700; color: var(--primary-green); display: block; margin-bottom: 4px;">Antécédents médicamenteux :</label>
+                            <textarea id="txtAntMedications" placeholder="Traitements habituels, médicaments pris régulièrement..." style="min-height: 60px;"></textarea>
+                        </div>
+
+                        <!-- Antécédents traumato chir -->
+                        <div>
+                            <label style="font-size: 0.82rem; font-weight: 700; color: var(--primary-green); display: block; margin-bottom: 4px;">Antécédents traumato-chirurgicaux :</label>
+                            <textarea id="txtAntSurgical" placeholder="Interventions chirurgicales passées, traumatismes importants..." style="min-height: 60px;"></textarea>
+                        </div>
+
+                        <!-- Antécédents Hérédo-collatéraux -->
+                        <div>
+                            <label style="font-size: 0.82rem; font-weight: 700; color: var(--primary-green); display: block; margin-bottom: 4px;">Antécédents Hérédo-collatéraux (Familiaux) :</label>
+                            <textarea id="txtAntFamily" placeholder="Pathologies familiales (HTA, diabète, cancers...)..." style="min-height: 60px;"></textarea>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Section Allergies -->
+                <div class="section-card">
+                    <div class="section-title">6. Allergies</div>
+                    <textarea id="txtAllergies" placeholder="Allergies médicamenteuses, alimentaires ou autres..." style="min-height: 65px;"></textarea>
+                </div>
+
+                <!-- Section Habitus -->
+                <div class="section-card">
+                    <div class="section-title">7. Habitus</div>
+                    <div style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-input); padding: 12px; border-radius: 8px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; font-size: 0.8rem;">
+                            <label class="ros-item"><input type="checkbox" class="hab-chk" value="Alcool"> Alcool</label>
+                            <label class="ros-item"><input type="checkbox" class="hab-chk" value="Tabac"> Tabac</label>
+                            <label class="ros-item"><input type="checkbox" class="hab-chk" value="Drogues illicites"> Drogues illicites</label>
+                            <label class="ros-item"><input type="checkbox" class="hab-chk" value="Chicha"> "Chicha"</label>
+                            <label class="ros-item"><input type="checkbox" class="hab-chk" value="Autres"> Autres</label>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Commentaire / Précisions sur les habitus :</label>
+                            <input type="text" id="txtHabitusComment" placeholder="Fréquence, quantité, observations..." style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); font-size: 0.85rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 8 : Revue des Systèmes (ROS) Distincte -->
+                <div class="section-card">
+                    <div class="section-title collapsible-header" onclick="toggleCollapsibleSection('rosCollapsibleBody', 'rosToggleIcon')">
+                        <span>8. Revue des Systèmes (ROS)</span>
+                        <span id="rosToggleIcon" style="font-size: 0.9rem; font-weight: bold;">▶ Déplier</span>
+                    </div>
+                    <div id="rosCollapsibleBody" style="display: none; margin-top: 10px;">
+                        <div class="ros-grid" id="rosContainer">
+                            <label class="ros-item"><input type="checkbox" value="Fièvre / Frissons"> Fièvre / Frissons</label>
+                            <label class="ros-item"><input type="checkbox" value="Asthénie / Fatigue"> Asthénie / Fatigue</label>
+                            <label class="ros-item"><input type="checkbox" value="Toux / Dyspnée"> Toux / Dyspnée</label>
+                            <label class="ros-item"><input type="checkbox" value="Douleur Thoracique"> Douleur Thoracique</label>
+                            <label class="ros-item"><input type="checkbox" value="Nausées / Vomissements"> Nausées / Vomissements</label>
+                            <label class="ros-item"><input type="checkbox" value="Douleurs Abdominales"> Douleurs Abdominales</label>
+                            <label class="ros-item"><input type="checkbox" value="Céphalées / Vertiges"> Céphalées / Vertiges</label>
+                            <label class="ros-item"><input type="checkbox" value="Arthralgies / Myalgies"> Arthralgies / Myalgies</label>
+                            <label class="ros-item"><input type="checkbox" value="Éruption Cutanée"> Éruption Cutanée</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 9 : Examens Biologiques et Imagerie Distincte -->
+                <div class="section-card">
+                    <div class="section-title collapsible-header" onclick="toggleCollapsibleSection('examCollapsibleBody', 'examToggleIcon')">
+                        <span>9. Examens Biologiques & Imagerie</span>
+                        <span id="examToggleIcon" style="font-size: 0.9rem; font-weight: bold;">▶ Déplier</span>
+                    </div>
+                    <div id="examCollapsibleBody" style="display: none; margin-top: 10px;">
+                        <div class="diag-grid">
+                            <div class="diag-card">
+                                <h3>🧪 Biologie & Laboratoire</h3>
+                                <textarea id="txtLabResults" placeholder="Résultats de biologie..."></textarea>
+                            </div>
+                            <div class="diag-card">
+                                <h3>🫀 Électrocardiogramme (ECG / EKG)</h3>
+                                <textarea id="txtEKGResults" placeholder="Interprétation ECG..."></textarea>
+                            </div>
+                            <div class="diag-card">
+                                <h3>📻 Échographie</h3>
+                                <textarea id="txtSonoResults" placeholder="Résultats d'échographie..."></textarea>
+                            </div>
+                            <div class="diag-card">
+                                <h3>🔬 Imagerie Avancée (Scanner / TDM, IRM, RX)</h3>
+                                <textarea id="txtImagingResults" placeholder="Résultats TDM, IRM..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title">10. Évaluation & Diagnostic Clinique</div>
+                    <textarea id="txtAssessment" placeholder="Impression clinique, diagnostic principal..."></textarea>
+                </div>
+
+                <!-- Examens prescrits après le Diagnostic -->
+                <div class="section-card">
+                    <div class="section-title">11. Examens Prescrits</div>
+                    <textarea id="txtPrescribedExams" placeholder="Examens biologiques, imagerie ou autres examens prescrits..." style="min-height: 70px;"></textarea>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title">12. Plan de Traitement & Validation</div>
+                    <textarea id="txtPlan" placeholder="Ordonnance, conseils, suivi..." style="margin-bottom: 12px;"></textarea>
+
+                    <div style="border-top: 2px dashed var(--border-color); padding-top: 12px;">
+                        <div style="font-size: 0.9rem; font-weight: 700; color: var(--primary-green); margin-bottom: 8px;">Validation du Médecin Traitant</div>
+                        <div style="max-width: 320px; margin-bottom: 8px;">
+                            <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Nom du Médecin</label>
+                            <input type="text" id="docName" placeholder="Dr. ..." style="width:100%; padding:6px; border:1px solid var(--border-color); border-radius:6px; margin-top:2px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 13. Mentions Spéciales -->
+                <div class="section-card" id="mentionsSpecialesCard" style="display: none;">
+                    <div class="section-title">13. Mentions Spéciales</div>
+                    <div class="mentions-grid">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; background: var(--bg-input); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div>
+                                <label style="font-size: 0.75rem; font-weight: 700; color: var(--primary-green); display: block; margin-bottom: 4px;">Frais Consultations (HTG) *</label>
+                                <input type="number" step="0.01" id="txtConsultPaidPart" placeholder="Montant versé" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; background: var(--bg-card); font-size: 0.9rem;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.75rem; font-weight: 700; color: var(--purple-due); display: block; margin-bottom: 4px;">Valeur due (HTG) *</label>
+                                <input type="number" step="0.01" id="txtConsultDueAmount" oninput="updatePatientStatusColor()" placeholder="Montant restant dû" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; background: var(--bg-card); font-size: 0.9rem;">
+                            </div>
+                        </div>
+
+                        <div style="border-top: 3px dashed var(--border-color); margin: 5px 0;"></div>
+
+                        <div class="mention-checkbox-group">
+                            <label class="mention-checkbox-item">
+                                <input type="checkbox" id="chkSpecialEvent" onchange="onSpecialStatusChange()">
+                                <span>A participé à un Événement spécial / Consultation Gratuite</span>
+                            </label>
+                            <label class="mention-checkbox-item" style="color: var(--warning-orange);">
+                                <input type="checkbox" id="chkReferred" onchange="onSpecialStatusChange()">
+                                <span>Référé</span>
+                            </label>
+                            <label class="mention-checkbox-item" style="color: var(--danger-red);">
+                                <input type="checkbox" id="chkDeceased" onchange="onSpecialStatusChange()">
+                                <span>Patient(e) décédé(e)</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Détails / Observations complémentaires :</label>
+                            <textarea id="txtSpecialDetails" placeholder="Précisez les circonstances..." style="min-height: 65px;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: right; margin-bottom: 30px;">
+                    <button type="button" class="btn btn-sec" style="font-size: 1rem; padding: 12px 18px; margin-right: 8px;" onclick="printCurrentVisit()">🖨️ Imprimer cette visite</button>
+                    <button type="button" class="btn btn-green" id="btnSaveVisit" style="font-size: 1rem; padding: 12px 24px; font-weight: 700; box-shadow: 0 4px 10px rgba(5,150,105,0.2);" onclick="saveCurrentVisit()">💾 Enregistrer la consultation</button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- 4. Standalone Reports Section -->
+        <div id="reportsSectionView" style="display: none;">
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;" class="section-title">
+                    <span>📊 Rapports & Analyses Globales</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-sec" onclick="printReport()">🖨️ Imprimer</button>
+                        <button class="btn btn-sec" onclick="exportReportPDF()">📥 Exporter PDF</button>
+                        <button class="btn btn-sec" onclick="exportReportWord()">📥 Exporter Word</button>
+                        <button class="btn btn-green" onclick="showHomeSection()">← Accueil</button>
+                    </div>
+                </div>
+                
+                <div class="report-controls">
+                    <div id="reportModeGroup">
+                        <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Type de Rapport :</label>
+                        <select id="reportModeSelect" onchange="toggleReportMode()" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+                            <option value="patient">Par Patient (Constantes / Visites)</option>
+                            <option value="status" id="reportStatusOption">Filtrer par Statut d'Administration</option>
+                            <option value="patientDebts" id="reportPatientDebtsOption" style="display: none;">Dettes par Patient</option>
+                            <option value="recoveryHistory" id="reportRecoveryHistoryOption" style="display: none;">Historique des Recouvrements</option>
+                            <option value="allDebtors" id="reportAllDebtorsOption" style="display: none;">Liste de Tous les Patients Débiteurs</option>
+                        </select>
+                    </div>
+
+                    <div id="patientReportFilterGroup">
+                        <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Sélectionner le Patient :</label>
+                        <select id="globalReportPatientSelect" onchange="renderReports()" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); min-width: 180px;"></select>
+                    </div>
+
+                    <div id="vitalReportFilterGroup">
+                        <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Constante / Donnée :</label>
+                        <select id="reportVitalSelect" onchange="renderReports()" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+                            <option value="weight">Poids (kg)</option>
+                            <option value="height">Taille (cm)</option>
+                            <option value="bmi">IMC (BMI)</option>
+                            <option value="bp">Tension (mmHg)</option>
+                            <option value="hr">Pouls (bpm)</option>
+                            <option value="temp">Température (°C)</option>
+                            <option value="fr">FR (cpm)</option>
+                            <option value="spo2">SpO2 (%)</option>
+                            <option value="glyc">Glycémie</option>
+                            <option value="labResults">Résultats de laboratoire</option>
+                            <option value="ekgResults">Résultats ECG</option>
+                            <option value="sonoResults">Résultats échographie</option>
+                            <option value="imagingResults">Résultats imagerie</option>
+                            <option value="assessment">Diagnostic</option>
+                            <option value="plan">Plan de traitement</option>
+                        </select>
+                    </div>
+
+                    <div id="statusReportFilterGroup" style="display: none;">
+                        <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Statut :</label>
+                        <select id="globalReportStatusSelect" onchange="renderReports()" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+                            <option value="Balance due">Balance due</option>
+                            <option value="Payé">Payé</option>
+                            <option value="En attente">En attente (livraison)</option>
+                            <option value="Livré">Livré</option>
+                        </select>
+                    </div>
+
+                    <div id="sortReportGroup">
+                        <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Ordre :</label>
+                        <select id="reportSortSelect" onchange="renderReports()" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+                            <option value="desc">Plus récent d'abord</option>
+                            <option value="asc">Plus ancien d'abord</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="report-table-container">
+                    <table class="report-table">
+                        <thead id="reportTableHeader">
+                            <tr>
+                                <th style="width: 25%;">Date & Heure de la Visite</th>
+                                <th style="width: 55%;">Valeur / Résultats Enregistrés</th>
+                                <th style="width: 20%;">Statut de la Fiche</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Option d'affichage des graphes de rapports sur demande -->
+                <div style="margin-top: 20px; border-top: 1px solid var(--border-light); padding-top: 15px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; color: var(--primary-green);">
+                        <input type="checkbox" id="chkToggleReportCharts" onchange="toggleReportChartsView()" style="width: 16px; height: 16px; accent-color: var(--primary-green);">
+                        <span>📊 Afficher les graphiques d'analyse pour ce rapport</span>
+                    </label>
+                    <div id="reportChartsContainer" style="display: none; margin-top: 15px; background: var(--bg-input); padding: 15px; border-radius: 8px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+                            <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted);">Type de graphique :</label>
+                            <select id="reportChartType" onchange="renderReportChart()" style="padding:5px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);"><option value="line" selected>Courbe (ligne)</option><option value="area">Aire</option><option value="bar">Barres verticales</option><option value="barH">Barres horizontales</option><option value="pie">Secteurs (camembert)</option><option value="doughnut">Anneau</option><option value="radar">Radar</option><option value="polarArea">Aire polaire</option></select>
+                        </div>
+                        <canvas id="reportCanvasChart" style="max-height: 280px; width: 100%;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Standalone Administration Section -->
+        <div id="adminSectionView" style="display: none;">
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;" class="section-title">
+                    <span>📁 ADMINISTRATION & GESTION GLOBALE</span>
+                    <button class="btn btn-green" onclick="showHomeSection()">← Accueil</button>
+                </div>
+
+                <div id="adminDashboardCards" class="home-dashboard-grid" style="margin-bottom: 20px;">
+                    <div class="home-action-card" onclick="switchAdminTab('tabExams')">
+                        <div class="home-icon">🧪</div>
+                        <h3>Examens Cliniques</h3>
+                        <p>Gérer les examens réalisés et statuts de paiement.</p>
+                    </div>
+                    <div class="home-action-card" onclick="switchAdminTab('tabExternalExams')">
+                        <div class="home-icon">🏥</div>
+                        <h3>Patients Hors-Clinique</h3>
+                        <p>Consulter et enregistrer les examens des patients externes.</p>
+                    </div>
+                    <div class="home-action-card" onclick="switchAdminTab('tabDeclassed')">
+                        <div class="home-icon">📂</div>
+                        <h3>Dossiers Déclassés</h3>
+                        <p>Suivre les patients référés et décédés.</p>
+                    </div>
+                    <div class="home-action-card" onclick="promptPinForFinance()">
+                        <div class="home-icon">📊</div>
+                        <h3>Synthèse Financière & Graphes 🔒</h3>
+                        <p>Consultations, examens, pharmacie, graphiques, export PDF/Word (Accès PIN).</p>
+                    </div>
+                </div>
+
+                <div id="backToAdminDashboardContainer" style="display: none; margin-bottom: 15px;">
+                    <button class="btn btn-sec" onclick="showAdminDashboardCards()">← Retour au menu Administration</button>
+                </div>
+
+                <div id="tabExams" class="admin-sub-content" style="display: none;">
+                    <div class="report-controls" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Sélectionner le Patient / Option :</label>
+                            <select id="globalAdminPatientSelect" onchange="handleAdminPatientSelectionChange()" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); min-width: 220px;"></select>
+                        </div>
+                        <div>
+                            <button class="btn btn-sec" onclick="openCustomExamModal()">+ Nouveau type d'examen</button>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color);">
+                        <h4 id="formClinicTitle" style="font-size: 0.85rem; color: var(--primary-green); margin-bottom: 8px; font-weight: 700;">Ajouter un nouvel examen</h4>
+                        <input type="hidden" id="editClinicIndex" value="-1">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: flex-end;">
+                            <div id="externalPatientFieldsContainer" style="display: none; grid-column: 1 / -1; background: var(--bg-card); padding: 8px; border-radius: 6px; border: 1px dashed var(--border-color);">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Nom & Prénom (hors-clinique)</label>
+                                        <input type="text" id="inputExtClinicName" placeholder="Nom complet" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Numéro de téléphone</label>
+                                        <input type="tel" id="inputExtClinicPhone" placeholder="+509 ..." style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Type d'Examen</label>
+                                <select id="inputClinicExamName" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;"></select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Statut Financier</label>
+                                <select id="inputClinicExamStatus" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                                    <option value="Payé">Payé</option>
+                                    <option value="Balance due">Balance due</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Montant versé (HTG)</label>
+                                <input type="number" step="0.01" id="inputClinicExamAmount" placeholder="0" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Montant de la dette (HTG)</label>
+                                <input type="number" step="0.01" id="inputClinicExamDebt" placeholder="0" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Livraison</label>
+                                <select id="inputClinicExamDelivery" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                                    <option value="En attente">En attente</option>
+                                    <option value="Livré">Livré</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Date Livraison</label>
+                                <input type="date" id="inputClinicExamDate" style="width:100%; padding:5px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" class="btn btn-green" style="width:100%; padding:7px;" id="btnSaveClinicExam" onclick="saveNewClinicExamRow()">💾 Enregistrer</button>
+                                <button type="button" class="btn btn-sec" style="padding:7px; display:none;" id="btnCancelClinicExam" onclick="cancelEditClinicExam()">Annuler</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <h3 style="font-size: 0.95rem; color: var(--primary-green); margin-bottom: 10px;">📋 Liste des examens enregistrés</h3>
+                        <div class="report-table-container">
+                            <table class="report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Patient / Nom</th>
+                                        <th>Type d'Examen</th>
+                                        <th>Statut</th>
+                                        <th>Montant versé</th>
+                                        <th>Montant de la dette</th>
+                                        <th>Livraison</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="savedAdminExamsListBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tabExternalExams" class="admin-sub-content" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                        <h3 style="font-size: 0.95rem; color: var(--primary-green);">Registre des Patients Hors-Clinique</h3>
+                        <div>
+                            <button class="btn btn-sec" onclick="openCustomExamModal()">+ Nouveau type d'examen</button>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color);">
+                        <h4 id="formExtTitle" style="font-size: 0.85rem; color: var(--primary-green); margin-bottom: 8px; font-weight: 700;">Ajouter un patient hors-clinique</h4>
+                        <input type="hidden" id="editExtIndex" value="-1">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: flex-end;">
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Nom & Prénom</label>
+                                <input type="text" id="inputExtName" placeholder="Nom complet" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Numéro de téléphone</label>
+                                <input type="tel" id="inputExtPhone" placeholder="+509 ..." style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Type d'Examen</label>
+                                <select id="inputExtExam" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;"></select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Montant Reçu (HTG)</label>
+                                <input type="number" id="inputExtPrice" placeholder="0" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Balance Dû</label>
+                                <input type="number" id="inputExtBalance" placeholder="0" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Statut Examen</label>
+                                <select id="inputExtDelivery" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                                    <option value="En attente">En attente</option>
+                                    <option value="Livré">Livré</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">Date</label>
+                                <input type="date" id="inputExtDate" style="width:100%; padding:5px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" class="btn btn-green" style="width:100%; padding:7px;" id="btnSaveExtExam" onclick="saveNewExternalExamRow()">💾 Enregistrer</button>
+                                <button type="button" class="btn btn-sec" style="padding:7px; display:none;" id="btnCancelExtExam" onclick="cancelEditExtExam()">Annuler</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <h3 style="font-size: 0.95rem; color: var(--primary-green); margin-bottom: 10px;">📋 Liste des patients hors-clinique enregistrés</h3>
+                        <div class="report-table-container">
+                            <table class="report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nom & Prénom</th>
+                                        <th>Téléphone</th>
+                                        <th>Type d'Examen</th>
+                                        <th>Montant Reçu</th>
+                                        <th>Balance Dû</th>
+                                        <th>Statut</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="savedExternalExamsListBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tabDeclassed" class="admin-sub-content" style="display: none;">
+                    <h3 style="font-size: 0.95rem; color: var(--primary-green); margin-bottom: 10px;">Registre Global des Dossiers Déclassés (Référés & Décédés)</h3>
+                    <div class="report-table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>ID & Patient</th>
+                                    <th>NIF / NINU</th>
+                                    <th>Statut Déclassé</th>
+                                    <th>Dernière Visite</th>
+                                    <th>Observations</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminDeclassedTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tabFinance" class="admin-sub-content" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                        <h3 style="font-size: 0.95rem; color: var(--primary-green);">Synthèse Financière - Clinique Marie Ursule Vervil</h3>
+                        
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <button class="btn btn-sec" onclick="exportFinancePDF()">📥 Exporter Finances (PDF)</button>
+                            <button class="btn btn-sec" onclick="exportFinanceWord()">📥 Exporter Finances (Word)</button>
+                            <div style="position: relative; display: inline-block;">
+                                <button class="btn btn-sec" onclick="toggleOtherFunctionsMenu()">⚙️ Autres fonctions ▼</button>
+                                <div id="otherFunctionsMenu" style="display: none; position: absolute; right: 0; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 240px; margin-top: 4px;">
+                                    <button style="width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; font-size: 0.85rem; color: var(--text-main); font-weight: 600; cursor: pointer; border-bottom: 1px solid var(--border-light);" onclick="openChangePinModal()">🔑 Modifier le code PIN</button>
+                                    <button style="width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; font-size: 0.85rem; color: var(--danger-red); font-weight: 600; cursor: pointer;" onclick="resetFinancialCounters()">🔄 Ré-initialiser les compteurs</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compteurs Financiers avec Compteur Pharmacie -->
+                    <div class="finance-cards-grid">
+                        <div class="finance-card" onclick="openFinanceDetailModal('consult')">
+                            <h4>Compteur Consultation</h4>
+                            <div class="fin-val" id="finConsultTotal">0.00 HTG</div>
+                            <div class="fin-ts" id="tsConsult">Dernière mise à jour : --</div>
+                        </div>
+                        <div class="finance-card" onclick="openFinanceDetailModal('exam')">
+                            <h4>Compteur Examen</h4>
+                            <div class="fin-val" id="finExamsTotal">0.00 HTG</div>
+                            <div class="fin-ts" id="tsExams">Dernière mise à jour : --</div>
+                        </div>
+                        <div class="finance-card" onclick="openFinanceDetailModal('pharmacy')">
+                            <h4>Compteur Pharmacie</h4>
+                            <div class="fin-val" id="finPharmacyTotal">0.00 HTG</div>
+                            <div class="fin-ts" id="tsPharmacy">Ventes pharmacie</div>
+                        </div>
+                        <div class="finance-card" onclick="openFinanceDetailModal('grandTotal')">
+                            <h4>Total des Entrées</h4>
+                            <div class="fin-val" id="finGrandTotal">0.00 HTG</div>
+                            <div class="fin-ts" id="tsGrandTotal">Global</div>
+                        </div>
+                        <div class="finance-card" onclick="openFinanceDetailModal('recoveries')" style="border-left: 4px solid var(--warning-orange);">
+                            <h4>Recouvrements</h4>
+                            <div class="fin-val" id="finRecoveriesTotal" style="color: var(--warning-orange);">0.00 HTG</div>
+                            <div class="fin-ts" id="tsRecoveries">Hors total global</div>
+                        </div>
+                    </div>
+
+                    <!-- Option d'affichage des graphiques financiers sur demande -->
+                    <div style="margin-top: 20px; border-top: 1px solid var(--border-light); padding-top: 15px;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; color: var(--primary-green);">
+                            <input type="checkbox" id="chkToggleFinanceCharts" onchange="toggleFinanceChartsView()" style="width: 16px; height: 16px; accent-color: var(--primary-green);">
+                            <span>📊 Afficher les graphiques d'analyse financière</span>
+                        </label>
+                        <div id="financeChartsContainer" style="display: none; margin-top: 15px; background: var(--bg-input); padding: 15px; border-radius: 8px;">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+                            <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted);">Type de graphique :</label>
+                            <select id="financeChartType" onchange="renderFinanceChart()" style="padding:5px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);"><option value="line">Courbe (ligne)</option><option value="area">Aire</option><option value="bar" selected>Barres verticales</option><option value="barH">Barres horizontales</option><option value="pie">Secteurs (camembert)</option><option value="doughnut">Anneau</option><option value="radar">Radar</option><option value="polarArea">Aire polaire</option></select>
+                        </div>
+                        <canvas id="financeCanvasChart" style="max-height: 280px; width: 100%;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal Modification de son propre mot de passe -->
+    <div class="modal" id="selfPasswordModal">
+        <div class="modal-content" style="width: 380px;">
+            <h3 style="color: var(--primary-green); margin-bottom: 8px;">Modifier mon mot de passe</h3>
+            <form onsubmit="saveSelfPassword(event)" style="display:flex; flex-direction:column; gap:10px;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:3px;">Mot de passe actuel *</label>
+                    <input type="password" id="selfOldPass" required placeholder="Mot de passe actuel" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:3px;">Nouveau mot de passe *</label>
+                    <input type="password" id="selfNewPass" required minlength="8" placeholder="Nouveau mot de passe (8 caractères min.)" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:3px;">Confirmer le nouveau mot de passe *</label>
+                    <input type="password" id="selfConfirmPass" required placeholder="Confirmer le nouveau mot de passe" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:6px;">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+                    <button type="button" class="btn btn-sec" onclick="closeSelfPasswordModal()">Annuler</button>
+                    <button type="submit" class="btn btn-green">Mettre à jour</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Modification du PIN -->
+    <div class="modal" id="changePinModal">
+        <div class="modal-content" style="width: 350px;">
+            <h3 style="color: var(--primary-green); margin-bottom: 8px;">Modifier le Code PIN</h3>
+            <form onsubmit="saveNewPin(event)" style="display:flex; flex-direction:column; gap:10px;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:3px;">Ancien code PIN *</label>
+                    <input type="password" id="oldPinInput" required placeholder="Ancien PIN" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:6px;">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:3px;">Nouveau code PIN *</label>
+                    <input type="password" id="newPinInput" required placeholder="Nouveau PIN" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:6px;">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+                    <button type="button" class="btn btn-sec" onclick="closeChangePinModal()">Annuler</button>
+                    <button type="submit" class="btn btn-green">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Détail Financier -->
+    <div class="modal" id="financeDetailModal">
+        <div class="modal-content" style="width: 700px; max-width: 95%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid var(--primary-green); padding-bottom: 8px;">
+                <h3 id="financeDetailModalTitle" style="color: var(--primary-green); font-size: 1.1rem;">Détail du Compteur Financier</h3>
+                <button type="button" class="btn btn-sec" onclick="closeFinanceDetailModal()">✕ Fermer</button>
+            </div>
+            <p id="financeDetailModalSubtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">--</p>
+            <div class="report-table-container" style="max-height: 400px; overflow-y: auto;">
+                <table class="report-table">
+                    <thead id="financeDetailTableHeader">
+                        <tr>
+                            <th>Patient / Vente</th>
+                            <th>Description / Détails</th>
+                            <th>Date</th>
+                            <th>Montant (HTG)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="financeDetailTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal PIN (Universel pour Finance & Gestion Utilisateurs) -->
+    <div class="modal" id="pinModal">
+        <div class="modal-content" style="width: 320px; text-align: center;">
+            <h3 style="color: var(--primary-green); margin-bottom: 8px;">Accès Sécurisé par PIN</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Veuillez saisir le code PIN Administrateur :</p>
+            <input type="password" id="pinInput" placeholder="Code PIN" style="width: 100%; padding: 8px; text-align: center; font-size: 1.1rem; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="btn btn-sec" onclick="closePinModal()">Annuler</button>
+                <button class="btn btn-green" onclick="verifyPinAction()">Valider</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Patient -->
+    <div class="modal" id="patientModal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary-green); margin-bottom: 12px; font-size: 1.1rem;">Enregistrer un Nouveau Patient</h2>
+            <form onsubmit="saveNewPatient(event)" style="display:flex; flex-direction:column; gap:8px;">
+                <input type="text" id="mCustomId" placeholder="ID Unique du Patient *" required style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                <input type="text" id="mName" placeholder="Nom Complet *" required style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                <input type="text" id="mNickname" placeholder="Surnom" style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                
+                <!-- Champ Sexe (2 options) -->
+                <div>
+                    <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Sexe *</label>
+                    <select id="mSex" required style="width:100%; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card); font-size:0.85rem;">
+                        <option value="">Sélectionner...</option>
+                        <option value="Féminin">Féminin</option>
+                        <option value="Masculin">Masculin</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; gap:8px;">
+                    <input type="date" id="mDOB" onchange="calculateAgeFromModalDOB()" style="width:65%; padding:6px; border:1px solid var(--border-color); border-radius:6px;" title="Date de Naissance">
+                    <input type="number" id="mAge" placeholder="Âge *" required style="width:35%; padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                </div>
+                <input type="text" id="mPOB" placeholder="Lieu de Naissance" style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                <input type="text" id="mProfession" placeholder="Profession / Occupation" style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                <input type="text" id="mNIF" placeholder="NIF / NINU" style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                <input type="text" id="mMother" placeholder="Nom de la Mère" style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                <input type="text" id="mPhone" placeholder="Téléphone" style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                <input type="text" id="mAddress" placeholder="Adresse Complète" style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                <hr style="border-color: var(--border-color); margin: 4px 0;">
+                <p style="font-size:0.75rem; color:var(--primary-green); font-weight:700;">Personne à Contacter en Cas d'Urgence</p>
+                <input type="text" id="mEContact" placeholder="Nom du contact" style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                <input type="text" id="mERel" placeholder="Lien de parenté" style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                <input type="text" id="mEPhone" placeholder="Téléphone d'urgence" style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                    <button type="button" class="btn btn-sec" onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn btn-green">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nouveau type d'examen -->
+    <div class="modal" id="customExamModal">
+        <div class="modal-content" style="width: 400px;">
+            <h2 style="color: var(--primary-green); margin-bottom: 12px; font-size: 1.1rem;">Nouveau type d'examen</h2>
+            <form onsubmit="event.preventDefault(); saveCustomExam();" style="display:flex; flex-direction:column; gap:10px;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Nom de l'examen *</label>
+                    <input type="text" id="customExamNameInput" required placeholder="Ex: 🧪 Test de grossesse" style="width:100%; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                    <button type="button" class="btn btn-sec" onclick="closeCustomExamModal()">Annuler</button>
+                    <button type="submit" class="btn btn-green">💾 Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Recouvrement (patient de la clinique) -->
+    <div class="modal" id="recoveryModal">
+        <div class="modal-content" style="width: 380px;">
+            <h2 style="color: var(--primary-green); margin-bottom: 4px; font-size: 1.1rem;">Enregistrer un versement</h2>
+            <p id="recoveryModalSubtitle" style="font-size:0.85rem; color:var(--danger-red); font-weight:600; margin-bottom:12px;"></p>
+            <form onsubmit="processRecovery(event)" style="display:flex; flex-direction:column; gap:10px;">
+                <input type="hidden" id="recPatientId">
+                <input type="hidden" id="recType">
+                <input type="hidden" id="recIndex">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Montant versé (HTG) *</label>
+                    <input type="number" step="0.01" min="0.01" id="recAmountInput" required style="width:100%; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Date & Heure du versement</label>
+                    <input type="datetime-local" id="recDateTimeInput" style="width:100%; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                    <button type="button" class="btn btn-sec" onclick="closeRecoveryModal()">Annuler</button>
+                    <button type="submit" class="btn btn-green">💾 Valider</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Recouvrement (patient hors-clinique) -->
+    <div class="modal" id="recoveryExtModal">
+        <div class="modal-content" style="width: 380px;">
+            <h2 style="color: var(--primary-green); margin-bottom: 4px; font-size: 1.1rem;">Versement – patient hors-clinique</h2>
+            <p id="recoveryExtModalSubtitle" style="font-size:0.85rem; color:var(--danger-red); font-weight:600; margin-bottom:12px;"></p>
+            <form onsubmit="processExtRecovery(event)" style="display:flex; flex-direction:column; gap:10px;">
+                <input type="hidden" id="recExtIndex">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Montant versé (HTG) *</label>
+                    <input type="number" step="0.01" min="0.01" id="recExtAmountInput" required style="width:100%; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Date & Heure du versement</label>
+                    <input type="datetime-local" id="recExtDateTimeInput" style="width:100%; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                    <button type="button" class="btn btn-sec" onclick="closeRecoveryExtModal()">Annuler</button>
+                    <button type="submit" class="btn btn-green">💾 Valider</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Approvisionnement Pharmacie -->
+    <div class="modal" id="supplyModal">
+        <div class="modal-content" style="width: 440px;">
+            <h2 style="color: var(--primary-green); margin-bottom: 12px; font-size: 1.1rem;">Nouveau reçu d'approvisionnement</h2>
+            <form onsubmit="saveSupplyItem(event)" style="display:flex; flex-direction:column; gap:10px;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Date d'achat *</label>
+                    <input type="date" id="supplyDateInput" required style="width:100%; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Fichier / Reçu (max 1,5 Mo)</label>
+                    <input type="file" id="supplyFileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="width:100%; font-size:0.85rem;">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                    <button type="button" class="btn btn-sec" onclick="closeSupplyModal()">Annuler</button>
+                    <button type="submit" class="btn btn-green">💾 Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Recette Pharmacie -->
+    <div class="modal" id="revenueModal">
+        <div class="modal-content" style="width: 600px;">
+            <h2 style="color: var(--primary-green); margin-bottom: 12px; font-size: 1.1rem;">Enregistrer une recette</h2>
+            <form onsubmit="saveRevenueItem(event)" style="display:flex; flex-direction:column; gap:10px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Date *</label>
+                        <input type="date" id="revenueDateInput" required style="width:100%; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                    </div>
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Numéro de la fiche de vente *</label>
+                        <input type="text" id="revenueDescInput" required placeholder="Ex: FV-0001" style="width:100%; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                    </div>
+                </div>
+
+                <div style="background:var(--bg-input); padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+                    <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Médicaments vendus</label>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
+                        <select id="revenueMedSelect" style="flex:1; min-width:200px; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card); font-size:0.8rem;"></select>
+                        <input type="number" id="revenueMedQty" min="1" value="1" style="width:70px; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                        <button type="button" class="btn btn-green" style="font-size:0.8rem;" onclick="addRevenueMedLine()">+ Ajouter</button>
+                    </div>
+                    <div class="report-table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr><th>Médicament</th><th>Qté</th><th>Prix</th><th>Unité</th><th>Total</th><th></th></tr>
+                            </thead>
+                            <tbody id="revenueMedLinesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Montant total (HTG)</label>
+                        <input type="number" step="0.01" id="revenueAmountInput" value="0.00" style="width:100%; padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                    </div>
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px;">Document joint (max 1,5 Mo)</label>
+                        <input type="file" id="revenueFileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="width:100%; font-size:0.85rem;">
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                    <button type="button" class="btn btn-sec" onclick="closeRevenueModal()">Annuler</button>
+                    <button type="submit" class="btn btn-green">💾 Enregistrer la recette</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Stock Pharmacie -->
+    <div class="modal" id="pharmacyModal">
+        <div class="modal-content" style="width: 480px;">
+            <h2 id="pharmacyModalTitle" style="color: var(--primary-green); margin-bottom: 12px; font-size: 1.1rem;">Ajouter un médicament au stock</h2>
+            <form onsubmit="savePharmacieItem(event)" style="display:flex; flex-direction:column; gap:10px;">
+                <input type="hidden" id="editPharmacyIndex" value="-1">
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Code PMUV *</label>
+                    <select id="medPmuvCode" required onchange="checkNewPmuvCode(this.value)" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-input); font-size:0.85rem;"></select>
+                </div>
+                <div id="newPmuvCodeContainer" style="display:none;">
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--primary-green); display: block; margin-bottom: 3px;">Nouveau Code PMUV :</label>
+                    <input type="text" id="medNewPmuvCodeInput" placeholder="Ex: PMUV-MED-999" style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Nom Commercial du Médicament *</label>
+                    <input type="text" id="medCommercialName" placeholder="Ex: Panadol" required style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Nom du Principe Actif *</label>
+                    <input type="text" id="medActiveIngredient" placeholder="Ex: Paracétamol" required style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Forme / Dosage *</label>
+                    <input type="text" id="medForm" placeholder="500mg, Sirop..." required style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Quantité en Stock *</label>
+                        <input type="number" id="medQty" placeholder="100" required style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Prix Unitaire (HTG) *</label>
+                        <input type="number" step="0.01" id="medPrice" placeholder="0.00" required style="width:100%; padding:6px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); font-size:0.85rem;">
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 3px;">Unité *</label>
+                    <div style="display: flex; gap: 10px; padding: 6px 0; font-size: 0.8rem; align-items: center; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="radio" name="medUnit" value="feuille" required style="accent-color: var(--primary-green);"> Feuille</label>
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="radio" name="medUnit" value="comprimé/gélule" required style="accent-color: var(--primary-green);"> Compr/Gél</label>
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="radio" name="medUnit" value="boîte" required style="accent-color: var(--primary-green);"> Boîte</label>
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="radio" name="medUnit" value="flacon" required style="accent-color: var(--primary-green);"> Flacon</label>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+                    <button type="button" class="btn btn-sec" onclick="closePharmacyModal()">Annuler</button>
+                    <button type="submit" class="btn btn-green" id="btnSavePharmacyModal">💾 Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Gestion Utilisateurs -->
+    <div class="modal" id="userManagementModal">
+        <div class="modal-content" style="width: 580px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h2 style="color: var(--primary-green); font-size: 1.1rem;">Gestion des Comptes Utilisateurs & Mots de Passe</h2>
+                <button type="button" class="btn btn-sec" style="font-size:0.75rem; padding:4px 8px;" onclick="openChangePinModal()">🔑 Modifier le code PIN</button>
+            </div>
+            
+            <form onsubmit="saveUserAccount(event)" style="background:var(--bg-input); padding:10px; border-radius:8px; margin-bottom:15px; display:flex; flex-direction:column; gap:8px;">
+                <h4 style="font-size:0.8rem; color:var(--primary-green);">+ Créer un compte / Modifier un compte (mot de passe vide = inchangé)</h4>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <input type="text" id="uUsername" placeholder="Nom d'utilisateur *" required style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                    
+                    <input type="password" id="uPassword" placeholder="Mot de passe (8 caractères min.)" autocomplete="new-password" style="padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <input type="text" id="uFullName" placeholder="Nom complet" style="padding:6px; border:1px solid var(--border-color); border-radius:6px;">
+                    <select id="uRole" style="padding:6px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);">
+                        <option value="admin">Administrateur</option>
+                        <option value="medecin">Médecin / Praticien</option>
+                        <option value="reception">Réception / Secrétariat</option>
+                    </select>
+                </div>
+                <div style="text-align:right; margin-top:4px;">
+                    <button type="submit" class="btn btn-green" style="padding:6px 12px; font-size:0.8rem;">Enregistrer Utilisateur</button>
+                </div>
+            </form>
+
+            <h4 style="font-size:0.85rem; color:var(--primary-green); margin-bottom:8px;">Liste des Utilisateurs</h4>
+            <div class="report-table-container">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Nom Utilisateur</th>
+                            <th>Nom Complet</th>
+                            <th>Rôle</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userListTableBody"></tbody>
+                </table>
+            </div>
+
+            <div style="text-align:right; margin-top:12px;">
+                <button type="button" class="btn btn-sec" onclick="closeUserManagementModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de synchronisation -->
+    <script src="config.js"></script>
+    <script src="sync.js"></script>
+
+    <!-- Scripts utilitaires pour graphiques & export PDF / Word -->
+    <script>
+        let reportChartInstance = null;
+        let financeChartInstance = null;
+
+        function updatePatientNameColor() {
+            updatePatientStatusColor();
+        }
+
+        function toggleReportChartsView() {
+            const chk = document.getElementById('chkToggleReportCharts');
+            const container = document.getElementById('reportChartsContainer');
+            if (chk.checked) {
+                container.style.display = 'block';
+                renderReportChart();
+            } else {
+                container.style.display = 'none';
+                if (reportChartInstance) { reportChartInstance.destroy(); reportChartInstance = null; }
+            }
+        }
+
+        const CHART_PALETTE = ['#059669', '#3b82f6', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#db2777', '#65a30d', '#ea580c', '#4f46e5'];
+
+        // Construit la configuration Chart.js selon la forme choisie
+        function buildChartConfig(shape, labels, data, label) {
+            const circular = ['pie', 'doughnut', 'polarArea'].includes(shape);
+            const colors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+            const options = { responsive: true, maintainAspectRatio: false };
+            const ds = { label: label, data: data, borderWidth: 2 };
+            let type = shape;
+
+            if (circular) {
+                ds.backgroundColor = colors; ds.borderColor = '#ffffff';
+            } else if (shape === 'bar' || shape === 'barH') {
+                type = 'bar'; ds.backgroundColor = colors; ds.borderWidth = 1;
+                if (shape === 'barH') options.indexAxis = 'y';
+            } else if (shape === 'radar') {
+                ds.borderColor = '#059669'; ds.backgroundColor = 'rgba(5, 150, 105, 0.2)';
+            } else { // line / area
+                type = 'line'; ds.borderColor = '#059669'; ds.backgroundColor = 'rgba(5, 150, 105, 0.15)';
+                ds.tension = 0.2; ds.fill = (shape === 'area');
+            }
+            return { type: type, data: { labels: labels, datasets: [ds] }, options: options };
+        }
+
+        function renderReportChart() {
+            const ctx = document.getElementById('reportCanvasChart').getContext('2d');
+            if (reportChartInstance) reportChartInstance.destroy();
+
+            const rows = document.querySelectorAll('#reportTableBody tr');
+            const labels = [];
+            const dataVals = [];
+
+            rows.forEach((tr, idx) => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.substring(0, 10));
+                    let val = parseFloat(tds[1].innerText) || (idx + 1);
+                    dataVals.push(val);
+                }
+            });
+
+            const shape = document.getElementById('reportChartType').value;
+            reportChartInstance = new Chart(ctx, buildChartConfig(
+                shape,
+                labels.length ? labels : ['1', '2'],
+                dataVals.length ? dataVals : [0, 0],
+                'Évolution clinique / Valeurs'
+            ));
+        }
+
+        function toggleFinanceChartsView() {
+            const chk = document.getElementById('chkToggleFinanceCharts');
+            const container = document.getElementById('financeChartsContainer');
+            if (chk.checked) {
+                container.style.display = 'block';
+                renderFinanceChart();
+            } else {
+                container.style.display = 'none';
+                if (financeChartInstance) { financeChartInstance.destroy(); financeChartInstance = null; }
+            }
+        }
+
+        function renderFinanceChart() {
+            const ctx = document.getElementById('financeCanvasChart').getContext('2d');
+            if (financeChartInstance) financeChartInstance.destroy();
+
+            const consultVal = parseFloat(document.getElementById('finConsultTotal').innerText) || 0;
+            const examsVal = parseFloat(document.getElementById('finExamsTotal').innerText) || 0;
+            const pharmacyVal = parseFloat(document.getElementById('finPharmacyTotal').innerText) || 0;
+
+            const shape = document.getElementById('financeChartType').value;
+            financeChartInstance = new Chart(ctx, buildChartConfig(
+                shape, ['Consultations', 'Examens', 'Pharmacie'], [consultVal, examsVal, pharmacyVal], 'Recettes (HTG)'
+            ));
+        }
+
+        function exportReportPDF() {
+            const element = document.getElementById('reportsSectionView');
+            const opt = {
+                margin: 10,
+                filename: 'Rapport_Clinique_Marie_Ursule_Vervil.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function exportReportWord() {
+            const content = document.getElementById('reportsSectionView').innerHTML;
+            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Rapport</title></head><body>";
+            const footer = "</body></html>";
+            const sourceHTML = header + content + footer;
+            const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+            const fileDownload = document.createElement("a");
+            document.body.appendChild(fileDownload);
+            fileDownload.href = source;
+            fileDownload.download = 'Rapport_Clinique_Marie_Ursule_Vervil.doc';
+            fileDownload.click();
+            document.body.removeChild(fileDownload);
+        }
+
+        function exportFinancePDF() {
+            const element = document.getElementById('tabFinance');
+            const opt = {
+                margin: 10,
+                filename: 'Synthese_Financiere_Clinique.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function exportFinanceWord() {
+            const content = document.getElementById('tabFinance').innerHTML;
+            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Synthèse Financière</title></head><body>";
+            const footer = "</body></html>";
+            const sourceHTML = header + content + footer;
+            const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+            const fileDownload = document.createElement("a");
+            document.body.appendChild(fileDownload);
+            fileDownload.href = source;
+            fileDownload.download = 'Synthese_Financiere_Clinique.doc';
+            fileDownload.click();
+            document.body.removeChild(fileDownload);
+        }
+
+        function exportPatientSummaryPDF() {
+            if (typeof patients !== 'undefined' && typeof activePatientId !== 'undefined') {
+                const p = patients.find(pt => pt.id === activePatientId);
+                if (!p) { alert("Aucun patient actif."); return; }
+
+                const printDiv = document.createElement('div');
+                printDiv.style.cssText = 'padding: 20px; font-family: Arial, sans-serif; color: #0f172a; background: #ffffff;';
+                
+                let visitsHtml = '';
+                if (p.visits && p.visits.length > 0) {
+                    p.visits.forEach((v, i) => {
+                        visitsHtml += `
+                            <div style="margin-bottom: 15px; border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">
+                                <h4 style="color: #059669; margin-bottom: 5px;">Visite #${i + 1} (${v.dateTime || 'N/A'})</h4>
+                                <p><strong>Motif :</strong> ${v.consultationReason || '--'}</p>
+                                <p><strong>Signes vitaux :</strong> Taille: ${v.height || '--'}cm | Poids: ${v.weight || '--'}kg | BP: ${v.bp || '--'} | FR: ${v.fr || '--'} | SpO2: ${v.spo2 || '--'}% | Glyc: ${v.glyc || '--'} | Temp: ${v.temp || '--'}°C</p>
+                                <p><strong>Histoire de la maladie :</strong> ${v.hpi || '--'}</p>
+                                <p><strong>Diagnostic :</strong> ${v.assessment || '--'}</p>
+                                <p><strong>Examens cliniques :</strong> ${(v.adminExamsList || []).map(e => e.examName).join(', ') || '--'}</p>
+                                <p><strong>Plan :</strong> ${v.plan || '--'}</p>
+                            </div>
+                        `;
+                    });
+                } else { visitsHtml = '<p>Aucune visite.</p>'; }
+
+                printDiv.innerHTML = `
+                    <h2 style="color: #059669; text-align: center;">Clinique Marie Ursule Vervil</h2>
+                    <h3 style="text-align: center;">Résumé du Dossier Patient</h3>
+                    <p><strong>ID :</strong> ${p.id} | <strong>Nom :</strong> ${p.name} (${p.sex || 'N/A'})</p>
+                    <p><strong>Âge :</strong> ${p.age} ans | <strong>Profession :</strong> ${p.profession || 'N/A'}</p>
+                    <hr style="margin: 15px 0;">
+                    <h4>Historique des Visites</h4>
+                    ${visitsHtml}
+                `;
+
+                html2pdf().from(printDiv).save();
+            }
+        }
+    </script>
+</body>
+</html>
